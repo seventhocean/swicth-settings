@@ -23,25 +23,28 @@ NC='\033[0m'
 
 # ---------- helpers ----------
 
-# 从 json 文件中读取 ANTHROPIC_MODEL
+# 从 json 文件中读取 ANTHROPIC_MODEL（去除首尾空白）
 get_model() {
   if [ ! -f "$1" ]; then
     echo ""
     return
   fi
+  local raw=""
   if command -v jq &>/dev/null; then
-    jq -r '.env.ANTHROPIC_MODEL // ""' "$1" 2>/dev/null || echo ""
+    raw="$(jq -r '.env.ANTHROPIC_MODEL // ""' "$1" 2>/dev/null)" || raw=""
   elif command -v python3 &>/dev/null; then
-    python3 -c "
+    raw="$(python3 -c "
 import json
 with open('$1') as f:
     d = json.load(f)
 print(d.get('env',{}).get('ANTHROPIC_MODEL','') or '')
-" 2>/dev/null || echo ""
+" 2>/dev/null)" || raw=""
   else
-    grep -o '"ANTHROPIC_MODEL"[[:space:]]*:[[:space:]]*"[^"]*"' "$1" \
-      | head -1 | sed 's/.*"\([^"]*\)"$/\1/' || echo ""
+    raw="$(grep -o '"ANTHROPIC_MODEL"[[:space:]]*:[[:space:]]*"[^"]*"' "$1" \
+      | head -1 | sed 's/.*"\([^"]*\)"$/\1/')" || raw=""
   fi
+  # 去除首尾空白/换行
+  echo "${raw}" | tr -d '[:space:]'
 }
 
 # 扫描所有 profile，输出 "后缀名=模型名"
@@ -90,8 +93,15 @@ find_profile() {
       echo "    $name (模型: $model)" >&2
     done
     return 1
+  else
+    echo -e "${RED}错误: 没有找到匹配 '$input' 的配置${NC}" >&2
+    echo "可用配置:" >&2
+    scan_profiles | while IFS='=' read -r name model; do
+      [ -z "$name" ] && continue
+      echo "    $name (模型: $model)" >&2
+    done
+    return 1
   fi
-  return 1
 }
 
 # 找出当前 settings.json 对应的 profile 后缀
@@ -151,16 +161,6 @@ do_switch() {
   local input="$1"
   local profile
   profile="$(find_profile "$input")" || exit 1
-
-  if [ -z "$profile" ]; then
-    echo -e "${RED}错误: 没有找到匹配 '$input' 的配置${NC}"
-    echo "可用配置:"
-    scan_profiles | while IFS='=' read -r name model; do
-      [ -z "$name" ] && continue
-      echo "    $name (${model})"
-    done
-    exit 1
-  fi
 
   local target_file="$CLAUDE_DIR/$PREFIX$profile"
 
