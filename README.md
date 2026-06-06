@@ -2,6 +2,14 @@
 
 一键切换 Claude Code `settings.json` 配置的小工具。
 
+## 安装
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/seventhocean/swicth-settings/main/install.sh | bash
+```
+
+安装后可全局使用 `switch` 命令。更新也是同一行命令，自动拉取最新代码并重建软链接。
+
 ## 原理
 
 通过 `mv` 在多个 `settings.json.<name>` 文件之间轮换：

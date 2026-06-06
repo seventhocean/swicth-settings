@@ -10,11 +10,19 @@ A Shell utility to switch between multiple Claude Code `settings.json` configura
 
 ## Commands
 
+### Install
+
 ```bash
-./switch.sh              # 列出所有配置
-./switch.sh --list       # 同上
-./switch.sh --current    # 显示当前配置
-./switch.sh seek         # 切换（子串匹配 profile 名或模型名）
+curl -fsSL https://raw.githubusercontent.com/seventhocean/swicth-settings/main/install.sh | bash
+```
+
+### Usage
+
+```bash
+switch                  # 列出所有配置
+switch --list           # 同上
+switch --current        # 显示当前配置
+switch seek             # 切换（子串匹配 profile 名或模型名）
 ```
 
 ## Architecture
@@ -51,6 +59,7 @@ If a keyword matches multiple profiles, an ambiguity error is shown.
 
 ```
 switch.sh              # The switch utility (bash)
+install.sh             # One-line install script
 README.md              # Project documentation
 CLAUDE.md              # This file
 ```
