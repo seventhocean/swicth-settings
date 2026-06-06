@@ -31,6 +31,16 @@ mv settings.json.<目标名> → settings.json
 
 纯 `mv` 轮换，不创建新文件，只在已有的配置文件之间切换。
 
+## 首次使用
+
+换到新机器或新增/删除配置后，需要先初始化：
+
+```bash
+./switch.sh --init
+```
+
+这会扫描 `~/.claude/settings.json*` 文件，生成 `.profiles.json` 映射文件（模型名 → profile 短名）。生成后可编辑该文件自定义 profile 名称。
+
 ## 配置文件
 
 | Profile | 文件名 | Provider | 模型 |
