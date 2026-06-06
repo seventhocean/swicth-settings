@@ -6,15 +6,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-A small Shell utility to switch between multiple Claude Code `settings.json` configurations by rotating files with `mv`.
+A Shell utility to switch between multiple Claude Code `settings.json` configurations by rotating files with `mv`.
 
 ## Commands
 
 ```bash
-./switch.sh           # 列出所有可用配置
-./switch.sh --list    # 同上
-./switch.sh --current # 显示当前激活的配置
-./switch.sh <name>    # 切换到指定配置（如 mimo、seek）
+./switch.sh              # 列出所有配置
+./switch.sh --list       # 同上
+./switch.sh --current    # 显示当前配置
+./switch.sh seek         # 切换（子串匹配 profile 名或模型名）
 ```
 
 ## Architecture
@@ -30,25 +30,22 @@ Switching is a simple `mv` rotation:
 1. `mv settings.json → settings.json.<当前profile名>`
 2. `mv settings.json.<目标名> → settings.json`
 
-### Model to Profile mapping
+### Profile matching
 
-The script maintains a mapping of `ANTHROPIC_MODEL` values to short profile names:
+No mapping file needed. Switching uses **substring matching** against both the profile suffix and the `ANTHROPIC_MODEL` value in each config file:
 
-| Model | Profile | File |
-|---|---|---|
-| `qwen3.6-plus` | `plus` | `settings.json.plus` |
-| `mimo-v2-pro` | `mimo` | `settings.json.mimo` |
-| `deepseek-v4-pro` | `seek` | `settings.json.seek` |
+- `./switch.sh seek` → matches suffix `seek` → `settings.json.seek`
+- `./switch.sh deep` → matches model `deepseek-v4-pro` → `settings.json.seek`
+- `./switch.sh qwen` → matches model `qwen3.6-plus` → `settings.json.qwen3.6-plus`
 
-To add a new profile:
-1. Create `settings.json.<name>` with the desired config
-2. Add the model→profile mapping in `switch.sh`
+If a keyword matches multiple profiles, an ambiguity error is shown.
 
 ### Key design decisions
 
-- **No new files created** — only rotates among existing `settings.json.*` files
+- **No mapping files** — dynamically reads model names from JSON files
 - **Excludes `settings.json.local`** from the available profiles list
 - **Pure `mv`** (not `cp`) — the current config is always saved back, nothing is lost
+- **Portable** — works on any machine with any set of `settings.json.*` files
 
 ### File structure
 
